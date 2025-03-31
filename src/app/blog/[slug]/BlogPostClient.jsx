@@ -77,7 +77,7 @@ export default function BlogPostClient({ slug }) {
           })
           .then((data) => {
             if (data) {
-              // Filter out the current post from recent posts if it's there
+              // Filter out the current post from recent posts if it&apos;s there
               if (data.recentPosts) {
                 data.recentPosts = data.recentPosts.filter(
                   (p) => p.id !== foundPost.id
@@ -88,7 +88,7 @@ export default function BlogPostClient({ slug }) {
           })
           .catch((err) => {
             console.error("Error fetching top data:", err);
-            // Don't fail the whole component if just the top data fails
+            // Don&apos;t fail the whole component if just the top data fails
           });
       } catch (err) {
         console.error("Error in fetchData:", err);
@@ -386,7 +386,7 @@ export default function BlogPostClient({ slug }) {
                 <div className="zubuz-blog-contact">
                   <h3>How can we help you?</h3>
                   <p>
-                    We are here to help you! Tell us how we can help and we'll
+                    We are here to help you! Tell us how we can help and we&apos;ll
                     get in touch within next 24hrs
                   </p>
                   <Link href="/contact">Contact Us</Link>
