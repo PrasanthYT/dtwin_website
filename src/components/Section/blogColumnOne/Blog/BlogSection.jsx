@@ -206,7 +206,7 @@ const BlogSection = () => {
               <div className="zubuz-blog-contact">
                 <h3>How can we help you?</h3>
                 <p>
-                  We are here to help you! Tell us how we can help and we'll get
+                  We are here to help you! Tell us how we can help and we&apos;ll get
                   in touch within next 24hrs
                 </p>
                 <Link href="/contact">Contact Us</Link>
