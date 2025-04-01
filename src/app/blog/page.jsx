@@ -58,7 +58,7 @@ const StaticBlogSection = () => {
 // Import the client-side blog section component dynamically
 import dynamic from "next/dynamic";
 const DynamicBlogSection = dynamic(
-  () => import("~/components/Section/blogColumnOne"),
+  () => import("~/components/Section/blogColumnOne/BlogSection"),
   {
     ssr: false,
     loading: () => <StaticBlogSection />,
