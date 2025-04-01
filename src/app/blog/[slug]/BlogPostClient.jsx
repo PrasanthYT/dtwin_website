@@ -85,7 +85,7 @@ export default function BlogPostClient({ slug }) {
           })
           .then((data) => {
             if (data) {
-              // Filter out the current post from recent posts if it's there
+              // Filter out the current post from recent posts if it&apos;s there
               if (data.recentPosts) {
                 data.recentPosts = data.recentPosts.filter(
                   (p) => p.id !== foundPost.id
@@ -96,7 +96,7 @@ export default function BlogPostClient({ slug }) {
           })
           .catch((err) => {
             console.error("Error fetching top data:", err);
-            // Don't fail the whole component if just the top data fails
+            // Don&apos;t fail the whole component if just the top data fails
           });
       } catch (err) {
         console.error("Error in fetchData:", err);
