@@ -50,6 +50,9 @@ const HomeHeaderTwo = ({ logoSrc }) => {
   }, [isActive]);
 
   const scrollToSection = (id) => {
+    if (id == "blog") {
+      window.location.href = "/blog";
+    }
     const section = document.getElementById(id);
     if (section) {
       window.scrollTo({
@@ -65,7 +68,7 @@ const HomeHeaderTwo = ({ logoSrc }) => {
     { icon: <Home size={20} />, label: "Home", id: "home" },
     { icon: <Zap size={20} />, label: "Features", id: "features" },
     { icon: <HelpCircle size={20} />, label: "Why Us?", id: "why-us" },
-    { icon: <FileText size={20} />, label: "News", id: "news" },
+    { icon: <FileText size={20} />, label: "News", id: "blog" },
   ];
 
   return (
@@ -161,10 +164,16 @@ const HomeHeaderTwo = ({ logoSrc }) => {
             </div>
 
             <div className="drawer-stores">
-              <a href="https://docs.google.com/forms/d/e/1FAIpQLSfzlQ-MxRn3xyZ4yj3fxFtkgwz6r_ZwzUdA5Ocp72-5Bkr-dA/viewform" className="drawer-store-btn">
+              <a
+                href="https://docs.google.com/forms/d/e/1FAIpQLSfzlQ-MxRn3xyZ4yj3fxFtkgwz6r_ZwzUdA5Ocp72-5Bkr-dA/viewform"
+                className="drawer-store-btn"
+              >
                 <img src="/images/v1/app-store.png" alt="App Store" />
               </a>
-              <a href="https://docs.google.com/forms/d/e/1FAIpQLSfzlQ-MxRn3xyZ4yj3fxFtkgwz6r_ZwzUdA5Ocp72-5Bkr-dA/viewform" className="drawer-store-btn">
+              <a
+                href="https://docs.google.com/forms/d/e/1FAIpQLSfzlQ-MxRn3xyZ4yj3fxFtkgwz6r_ZwzUdA5Ocp72-5Bkr-dA/viewform"
+                className="drawer-store-btn"
+              >
                 <img src="/images/v1/play-store.png" alt="Play Store" />
               </a>
             </div>

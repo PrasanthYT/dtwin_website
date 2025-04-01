@@ -42,7 +42,14 @@ const PostCard = ({ recentPosts = [], getPostSlug }) => {
     if (getPostSlug) {
       return getPostSlug(heading);
     }
-    return heading.replace(/\s+/g, "-");
+
+    if (!heading) return "";
+    // Replace special characters and multiple spaces with a single dash
+    return heading
+      .replace(/[^\w\s-]/g, "") // Remove special characters except spaces and dashes
+      .replace(/\s+/g, "-") // Replace spaces with dashes
+      .replace(/-+/g, "-") // Replace multiple dashes with a single dash
+      .toLowerCase(); // Convert to lowercase for consistency
   };
 
   // Format date to a more readable format
@@ -62,6 +69,30 @@ const PostCard = ({ recentPosts = [], getPostSlug }) => {
     return heading.length > maxLength
       ? heading.substring(0, maxLength) + "..."
       : heading;
+  };
+
+  // Add a function to truncate and format markdown content
+  // Add this function after the existing functions but before the return statement
+  const formatPreviewContent = (content, maxLength = 100) => {
+    if (!content) return "";
+
+    // Remove markdown syntax for preview
+    const plainText = content
+      .replace(/#{1,6}\s/g, "") // Remove headings
+      .replace(/\*\*(.*?)\*\*/g, "$1") // Remove bold
+      .replace(/\*(.*?)\*/g, "$1") // Remove italic
+      .replace(/\[(.*?)\]$$.*?$$/g, "$1") // Remove links but keep text
+      .replace(/!\[(.*?)\]$$.*?$$/g, "") // Remove images
+      .replace(/```[\s\S]*?```/g, "") // Remove code blocks
+      .replace(/`(.*?)`/g, "$1") // Remove inline code
+      .replace(/>\s(.*?)(\n|$)/g, "$1$2") // Remove blockquotes
+      .replace(/- (.*?)(\n|$)/g, "$1$2") // Remove list markers
+      .replace(/\d+\. (.*?)(\n|$)/g, "$1$2"); // Remove numbered list markers
+
+    // Truncate to maxLength
+    return plainText.length > maxLength
+      ? plainText.substring(0, maxLength) + "..."
+      : plainText;
   };
 
   return (

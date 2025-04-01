@@ -5,10 +5,14 @@ import Link from "next/link";
 import { FaFacebookF, FaGithub, FaLinkedin, FaTwitter } from "react-icons/fa";
 import { HomeHeaderTwo } from "~/components/Section/Common/Header";
 import Footer from "~/components/Section/Common/Footer";
+import { notFound } from "next/navigation";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 export default function BlogPostClient({ slug }) {
   const [post, setPost] = useState(null);
   const [error, setError] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
   const [topData, setTopData] = useState({
     recentPosts: [],
     topTags: [],
@@ -17,19 +21,22 @@ export default function BlogPostClient({ slug }) {
 
   // Function to match the URL slug with the post heading
   const matchSlugToPost = (posts, urlSlug) => {
-    // Try to find an exact match first
-    let foundPost = posts.find(
-      (post) => post.heading.replace(/\s+/g, "-") === urlSlug
-    );
+    // Normalize the URL slug
+    const normalizedUrlSlug = urlSlug.toLowerCase();
 
-    if (!foundPost) {
-      // If no exact match, try a case-insensitive match
-      foundPost = posts.find(
-        (post) =>
-          post.heading.replace(/\s+/g, "-").toLowerCase() ===
-          urlSlug.toLowerCase()
-      );
-    }
+    // Try to find a match by generating slugs the same way for both sides
+    const foundPost = posts.find((post) => {
+      if (!post.heading) return false;
+
+      // Generate slug the same way we do in links
+      const postSlug = post.heading
+        .replace(/[^\w\s-]/g, "") // Remove special characters
+        .replace(/\s+/g, "-") // Replace spaces with dashes
+        .replace(/-+/g, "-") // Replace multiple dashes with a single dash
+        .toLowerCase(); // Convert to lowercase
+
+      return postSlug === normalizedUrlSlug;
+    });
 
     return foundPost;
   };
@@ -37,6 +44,7 @@ export default function BlogPostClient({ slug }) {
   useEffect(() => {
     const fetchData = async () => {
       try {
+        setIsLoading(true);
         // Fetch all blog posts to find the current one
         const blogRes = await fetch(
           "https://dtwin-cms-api.evenbetter.in/api/blog"
@@ -93,6 +101,8 @@ export default function BlogPostClient({ slug }) {
       } catch (err) {
         console.error("Error in fetchData:", err);
         setError("Failed to load blog post. Please try again later.");
+      } finally {
+        setIsLoading(false);
       }
     };
 
@@ -103,7 +113,13 @@ export default function BlogPostClient({ slug }) {
 
   // Function to generate URL slugs from headings
   const getPostSlug = (heading) => {
-    return heading.replace(/\s+/g, "-");
+    if (!heading) return "";
+    // Replace special characters and multiple spaces with a single dash
+    return heading
+      .replace(/[^\w\s-]/g, "") // Remove special characters except spaces and dashes
+      .replace(/\s+/g, "-") // Replace spaces with dashes
+      .replace(/-+/g, "-") // Replace multiple dashes with a single dash
+      .toLowerCase(); // Convert to lowercase for consistency
   };
 
   // Format date to a more readable format
@@ -117,53 +133,30 @@ export default function BlogPostClient({ slug }) {
     });
   };
 
-  // Format content with proper line breaks and headings
-  const formatContent = (content) => {
-    if (!content) return [];
-
-    const paragraphs = content.split("\n\n");
-    return paragraphs.map((paragraph, index) => {
-      // Check if paragraph starts with a heading pattern
-      if (paragraph.startsWith("# ")) {
-        return <h3 key={index}>{paragraph.substring(2)}</h3>;
+  // If there's an error and we're not loading, show the not found page
+  useEffect(() => {
+    if (error && !isLoading) {
+      // We can use this approach for client-side navigation
+      // For initial load, the server-side notFound() will handle it
+      if (typeof window !== "undefined") {
+        notFound();
       }
+    }
+  }, [error, isLoading]);
 
-      // Check if paragraph is a list
-      if (paragraph.includes("\n- ")) {
-        const listItems = paragraph.split("\n- ");
-        const title = listItems.shift(); // First part is the title
-
-        return (
-          <div key={index}>
-            {title && <p>{title}</p>}
-            <ul className="single-list">
-              {listItems.map((item, i) => (
-                <li key={i}>{item}</li>
-              ))}
-            </ul>
-          </div>
-        );
-      }
-
-      // Regular paragraph
-      return <p key={index}>{paragraph}</p>;
-    });
-  };
-
-  if (error) {
+  if (isLoading) {
     return (
       <>
         <HomeHeaderTwo />
         <div className="section zubuz-section-padding2 post-details-page">
           <div className="container">
             <div className="text-center py-10">
-              <h1 className="text-2xl font-bold text-red-500">{error}</h1>
-              <Link
-                href="/#news"
-                className="mt-4 inline-block text-blue-600 hover:underline"
-              >
-                Return to blog list
-              </Link>
+              <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-r-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite]">
+                <span className="!absolute !-m-px !h-px !w-px !overflow-hidden !whitespace-nowrap !border-0 !p-0 ![clip:rect(0,0,0,0)]">
+                  Loading...
+                </span>
+              </div>
+              <p className="mt-4">Loading blog post...</p>
             </div>
           </div>
         </div>
@@ -172,14 +165,22 @@ export default function BlogPostClient({ slug }) {
     );
   }
 
-  if (!post) {
+  if (error || !post) {
     return (
       <>
         <HomeHeaderTwo />
         <div className="section zubuz-section-padding2 post-details-page">
           <div className="container">
             <div className="text-center py-10">
-              <h1 className="text-2xl font-bold">Loading blog post...</h1>
+              <h1 className="text-2xl font-bold text-red-500">
+                {error || "Blog post not found"}
+              </h1>
+              <Link
+                href="/blog"
+                className="mt-4 inline-block text-blue-600 hover:underline"
+              >
+                Return to blog list
+              </Link>
             </div>
           </div>
         </div>
@@ -204,7 +205,9 @@ export default function BlogPostClient({ slug }) {
                 </div>
                 <div className="post-meta">
                   <div className="post-category">
-                    <Link href={`/category/${post.main_tag.toLowerCase()}`}>
+                    <Link
+                      href={`/blog?category=${post.main_tag.toLowerCase()}`}
+                    >
                       {post.main_tag}
                     </Link>
                   </div>
@@ -212,17 +215,95 @@ export default function BlogPostClient({ slug }) {
                 </div>
                 <div className="entry-content">
                   <h3>{post.heading}</h3>
-                  {formatContent(post.content)}
+
+                  {/* Render markdown content */}
+                  <div className="markdown-content">
+                    <ReactMarkdown
+                      remarkPlugins={[remarkGfm]}
+                      components={{
+                        // Customize heading rendering
+                        h1: ({ node, ...props }) => (
+                          <h3
+                            className="text-2xl font-bold mt-6 mb-4"
+                            {...props}
+                          />
+                        ),
+                        h2: ({ node, ...props }) => (
+                          <h4
+                            className="text-xl font-bold mt-5 mb-3"
+                            {...props}
+                          />
+                        ),
+                        h3: ({ node, ...props }) => (
+                          <h5
+                            className="text-lg font-bold mt-4 mb-2"
+                            {...props}
+                          />
+                        ),
+
+                        // Customize paragraph rendering
+                        p: ({ node, ...props }) => (
+                          <p className="mb-4" {...props} />
+                        ),
+
+                        // Customize list rendering
+                        ul: ({ node, ...props }) => (
+                          <ul className="single-list mb-4 pl-6" {...props} />
+                        ),
+                        ol: ({ node, ...props }) => (
+                          <ol
+                            className="single-list mb-4 pl-6 list-decimal"
+                            {...props}
+                          />
+                        ),
+                        li: ({ node, ...props }) => (
+                          <li className="mb-1" {...props} />
+                        ),
+
+                        // Customize link rendering
+                        a: ({ node, ...props }) => (
+                          <a
+                            className="text-blue-600 hover:underline"
+                            {...props}
+                          />
+                        ),
+
+                        // Customize code rendering
+                        code: ({ node, inline, ...props }) =>
+                          inline ? (
+                            <code
+                              className="bg-gray-100 px-1 py-0.5 rounded text-sm"
+                              {...props}
+                            />
+                          ) : (
+                            <pre className="bg-gray-100 p-4 rounded overflow-x-auto mb-4">
+                              <code {...props} />
+                            </pre>
+                          ),
+
+                        // Customize blockquote rendering
+                        blockquote: ({ node, ...props }) => (
+                          <blockquote
+                            className="border-l-4 border-gray-300 pl-4 italic my-4"
+                            {...props}
+                          />
+                        ),
+                      }}
+                    >
+                      {post.content || ""}
+                    </ReactMarkdown>
+                  </div>
 
                   <div className="post-tag-wrap">
                     <div className="post-tag">
                       <h3>Tags:</h3>
-                      <div className="wp-block-tag-cloud">
+                      <div className="wp-block-tag-cloud pb-4">
                         {post.tags &&
                           post.tags.map((tag, index) => (
                             <Link
                               key={index}
-                              href={`/tag/${tag.toLowerCase()}`}
+                              href={`/blog?tag=${tag.toLowerCase()}`}
+                              className="mb-2"
                             >
                               {tag}
                             </Link>
@@ -278,7 +359,7 @@ export default function BlogPostClient({ slug }) {
             </div>
             <div className="col-lg-4">
               <div className="right-sidebar">
-                <div className="widget">
+                <div className="widget mb-6">
                   <div className="wp-block-search__inside-wrapper">
                     <input
                       type="search"
@@ -290,30 +371,32 @@ export default function BlogPostClient({ slug }) {
                     </button>
                   </div>
                 </div>
-                <div className="widget">
+                <div className="widget mb-6">
                   <h3 className="wp-block-heading">Categories:</h3>
-                  <ul>
+                  <ul className="pb-2">
                     {topData.topMainTags && topData.topMainTags.length > 0 ? (
                       topData.topMainTags.map((tag, index) => (
-                        <li key={index}>
-                          <Link href={`/category/${tag.toLowerCase()}`}>
+                        <li key={index} className="mb-2">
+                          <Link href={`/blog?category=${tag.toLowerCase()}`}>
                             {tag}
                           </Link>
                         </li>
                       ))
                     ) : (
                       <>
-                        <li>
+                        <li className="mb-2">
                           <Link
-                            href={`/category/${post.main_tag.toLowerCase()}`}
+                            href={`/blog?category=${post.main_tag.toLowerCase()}`}
                           >
                             {post.main_tag}
                           </Link>
                         </li>
                         {post.tags &&
                           post.tags.slice(0, 2).map((tag, index) => (
-                            <li key={index}>
-                              <Link href={`/category/${tag.toLowerCase()}`}>
+                            <li key={index} className="mb-2">
+                              <Link
+                                href={`/blog?category=${tag.toLowerCase()}`}
+                              >
                                 {tag}
                               </Link>
                             </li>
@@ -322,7 +405,7 @@ export default function BlogPostClient({ slug }) {
                     )}
                   </ul>
                 </div>
-                <div className="widget zubuz_recent_posts_Widget">
+                <div className="widget zubuz_recent_posts_Widget mb-6">
                   <h3 className="wp-block-heading">Recent Posts:</h3>
                   {topData.recentPosts && topData.recentPosts.length > 0 ? (
                     topData.recentPosts.map((recentPost, index) => (
@@ -356,12 +439,16 @@ export default function BlogPostClient({ slug }) {
                     </div>
                   )}
                 </div>
-                <div className="widget">
+                <div className="widget mb-6">
                   <h3 className="wp-block-heading">Tags:</h3>
-                  <div className="wp-block-tag-cloud">
+                  <div className="wp-block-tag-cloud pb-4">
                     {topData.topTags && topData.topTags.length > 0 ? (
                       topData.topTags.map((tag, index) => (
-                        <Link key={index} href={`/tag/${tag.toLowerCase()}`}>
+                        <Link
+                          key={index}
+                          href={`/blog?tag=${tag.toLowerCase()}`}
+                          className="mb-2"
+                        >
                           {tag}
                         </Link>
                       ))
@@ -371,22 +458,26 @@ export default function BlogPostClient({ slug }) {
                           post.tags.map((tag, index) => (
                             <Link
                               key={index}
-                              href={`/tag/${tag.toLowerCase()}`}
+                              href={`/blog?tag=${tag.toLowerCase()}`}
+                              className="mb-2"
                             >
                               {tag}
                             </Link>
                           ))}
-                        <Link href={`/tag/${post.main_tag.toLowerCase()}`}>
+                        <Link
+                          href={`/blog?tag=${post.main_tag.toLowerCase()}`}
+                          className="mb-2"
+                        >
                           {post.main_tag}
                         </Link>
                       </>
                     )}
                   </div>
                 </div>
-                <div className="zubuz-blog-contact">
+                <div className="zubuz-blog-contact mb-6">
                   <h3>How can we help you?</h3>
                   <p>
-                    We are here to help you! Tell us how we can help and we'll
+                    We are here to help you! Tell us how we can help and we&apos;ll
                     get in touch within next 24hrs
                   </p>
                   <Link href="/contact">Contact Us</Link>
