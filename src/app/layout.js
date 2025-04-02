@@ -68,7 +68,7 @@ export default function RootLayout({ children }) {
       <head>
         {/* Google Analytics - gtag.js */}
         <Script
-          strategy="afterInteractive"
+          strategy="beforeInteractive"
           src="https://www.googletagmanager.com/gtag/js?id=G-Y6HG4SG2CH"
         />
         <Script
