@@ -1,4 +1,5 @@
 import { Inter, Raleway } from "next/font/google";
+import Script from "next/script";
 import "~/assets/css/bootstrap.min.css";
 import "~/assets/css/app.css";
 import "~/assets/css/main.css";
@@ -64,6 +65,25 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
+      <head>
+        {/* Google Analytics - gtag.js */}
+        <Script
+          strategy="afterInteractive"
+          src="https://www.googletagmanager.com/gtag/js?id=G-Y6HG4SG2CH"
+        />
+        <Script
+          id="google-analytics"
+          strategy="afterInteractive"
+          dangerouslySetInnerHTML={{
+            __html: `
+              window.dataLayer = window.dataLayer || [];
+              function gtag(){dataLayer.push(arguments);}
+              gtag('js', new Date());
+              gtag('config', 'G-Y6HG4SG2CH');
+            `,
+          }}
+        />
+      </head>
       <body className={`${inter.variable} ${raleway.variable}`}>
         {children}
         <Analytics />

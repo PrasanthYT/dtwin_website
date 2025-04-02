@@ -1007,6 +1007,18 @@ a.log-in-btn:hover:after {
   font-size: 100px;
 }
 
+@media (max-width: 767px) {
+  .hero-text-xl {
+    font-size: 40px; /* Reduced from 50px to 40px */
+  }
+}
+
+@media (max-width: 480px) {
+  .hero-text-xl {
+    font-size: 30px; /* Further reduced for very small screens */
+  }
+}
+
 .typing-cursor {
   display: inline-block;
   width: 3px;
